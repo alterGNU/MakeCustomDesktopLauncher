@@ -77,12 +77,20 @@ function check_default_xdg()
 # MAIN
 # ==================================================================================================
 
-# -[ CHECKS ]---------------------------------------------------------------------------------------
+# -[ CHECK PACKAGES NEEDED ]------------------------------------------------------------------------
 echo -e "Check Requirements Packages:"
 checkPackage xdg-open xdg-utils   # CheckIf xdg-open cmd from xdg-utils package is available
 checkPackage zenity               # CheckIf zenity cmd is available
 checkPackage identify imagemagick # CheckIf convert cmd from imagemagick package is available
 checkPackage convert imagemagick  # CheckIf convert cmd from imagemagick package is available
 
+# -[ CHECK DEFAULT XDG FOLDER ]---------------------------------------------------------------------
 echo -e "\nCheck Default Folder Localisation:"
 check_default_xdg                 # CheckIf XDG default folder exist, else ask user to define one
+
+# -[ CREATE FOLDER ]--------------------------------------------------------------------------------
+echo -e "\nCreate Folder:"
+# ask a folder name while it's empty or already taken
+while [ -d "${folderPath}${folderName}" ] || [ -z "${folderName}" ] ;do get_value_from_user folderName "Choose launcher's name" "Please, enter the name of your launcher";done
+echo -ne "\t- "
+mkdir -vp "${folderPath}${folderName}/"
