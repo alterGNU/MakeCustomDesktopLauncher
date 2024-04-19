@@ -41,18 +41,6 @@ function get_value_from_user()
     eval ${1}=$(zenity --entry --title="${title}" --text="${text}")
 }
 
-# -[ CHECK FOLDER BY DEFAULT XDG ]------------------------------------------------------------------
-function check_default_xdg()
-{
-	# ASK user where to store our desktop file if ~/.local/share/applications doesn't exist
-	echo -e "Check Default Folder Localisation"
-	if [[ ! -d ${folderPath} ]]; then
-		echo "yapaouech"
-	else
-		echo "cool"
-	fi
-}
-
 # -[ CHECK REQUIREMENT PACKAGES ]-------------------------------------------------------------------
 function checkPackage()
 {
@@ -69,17 +57,32 @@ function checkPackage()
 	    return 12
         fi
     else
-        echo -e " - ${cmd}..OK! ${package} is installed"
+        echo -e "\t- ${cmd} is installed."
     fi
 }
+
+# -[ CHECK FOLDER BY DEFAULT XDG ]------------------------------------------------------------------
+function check_default_xdg()
+{
+	# ASK user where to store our desktop file if ~/.local/share/applications doesn't exist
+	if [[ -d ${folderPath} ]]; then
+		echo -e "\t- '${folderPath}' exist."
+	else
+		folderPath=$(zenity --file-selection --directory --title="Select or Create the directory that will contains your launchers")
+	fi
+}
+
 
 # ==================================================================================================
 # MAIN
 # ==================================================================================================
 
-## -[ CHECKS ]---------------------------------------------------------------------------------------
-#echo -e "Check Requirements Packages:"
-#checkPackage xdg-open xdg-utils   # CheckIf xdg-open cmd from xdg-utils package is available
-#checkPackage zenity               # CheckIf zenity cmd is available
-#checkPackage identify imagemagick # CheckIf convert cmd from imagemagick package is available
-#checkPackage convert imagemagick  # CheckIf convert cmd from imagemagick package is available
+# -[ CHECKS ]---------------------------------------------------------------------------------------
+echo -e "Check Requirements Packages:"
+checkPackage xdg-open xdg-utils   # CheckIf xdg-open cmd from xdg-utils package is available
+checkPackage zenity               # CheckIf zenity cmd is available
+checkPackage identify imagemagick # CheckIf convert cmd from imagemagick package is available
+checkPackage convert imagemagick  # CheckIf convert cmd from imagemagick package is available
+
+echo -e "\nCheck Default Folder Localisation:"
+check_default_xdg                 # CheckIf XDG default folder exist, else ask user to define one
