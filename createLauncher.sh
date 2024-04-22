@@ -9,6 +9,7 @@
 # ERROR11 => check_package fct   : invalid number of arguments of check_package function
 # ERROR12 => check_package fct   : a command is not install and user does not want to install it
 # ERROR13 => get_value_from_user : invalid number of arguments of get_value_from_user function
+# ERROR14 => create_link         : invalid number of arguments of create_link function        
 
 # =[ SETTINGS ]=====================================================================================
 set -euo pipefail                # Stop when cmd or pipe fail or if undefined variable is used
@@ -37,8 +38,8 @@ function get_value_from_user()
 	# `get_value_form_user arg1` Ask user the value of the variable ${arg1} then update it value.
 	[[ ${#} -lt 1 || ${#} -gt 3 ]] && { echo -e "ERROR13: get_value_from_user() call failed, take 1,2 or 3 arguments : (usage) get_value_from_user variable_name title_message text_message." ; return 13 ; }
 	[[ ${#} -gt 1 ]] && local title=${2} || local title="Change the value of \${${1}}"
-	[[ ${#} -gt 2 ]] && local text=${3} || local text="Enter the value of the variable \${${1}}"
-    eval ${1}=$(zenity --entry --title="${title}" --text="${text}")
+	[[ ${#} -gt 2 ]] && local text=${3} || local text="Enter the new value you want to assign to the variable \${${1}}"
+    eval ${1}="$(zenity --entry --title=${title} --text=${text})"
 }
 
 # -[ CHECK REQUIREMENT PACKAGES ]-------------------------------------------------------------------
@@ -72,6 +73,18 @@ function check_default_xdg()
 	fi
 }
 
+# -[ CREATE LINK ] ---------------------------------------------------------------------------------
+function create_link()
+{
+    [[ $# -ne 1 ]] && { echo -e "ERROR14: create_link() call failed, take 1 argument: path_to_file.desktop" ; return 14 ; }
+    local path_to_file = 
+    touch ${file} -v                         # Create {file}
+    echo "[Desktop Entry]" >> ${file}        # ADD header
+    echo "type=Link" >> ${file}              # ADD type
+    echo "Name=${folderName}" >> ${file}     # ADD Name
+    echo "Comment=${comment}" >> ${file}     # ADD Description
+    echo "URL=${path_to_file}" >> ${file}    # ADD Path to file or folder we want a link to
+}
 
 # ==================================================================================================
 # MAIN
@@ -88,9 +101,31 @@ checkPackage convert imagemagick  # CheckIf convert cmd from imagemagick package
 echo -e "\nCheck Default Folder Localisation:"
 check_default_xdg                 # CheckIf XDG default folder exist, else ask user to define one
 
-# -[ CREATE FOLDER ]--------------------------------------------------------------------------------
-echo -e "\nCreate Folder:"
-# ask a folder name while it's empty or already taken
+# -[ GET INFORMATIONS FROM USER ]-------------------------------------------------------------------
+# ask a launcher/folder name while it's empty or folder's name already taken
 while [ -d "${folderPath}${folderName}" ] || [ -z "${folderName}" ] ;do get_value_from_user folderName "Choose launcher's name" "Please, enter the name of your launcher";done
-echo -ne "\t- "
-mkdir -vp "${folderPath}${folderName}/"
+
+# ask type of desktop file
+ask_type=`zenity --list --title="Type of desktop file options" --column="0" "Application" "Link" "Directory" "Other" --width=100 --height=300 --hide-header`
+#[ "$ask_type" != "Other" ] && echo "type=${ask_type}" >> ${1}     # ADD type
+
+# ask for a description
+get_value_from_user "comment" "(OPTIONNAL):ADD some comment" "Tooltip for the entry, for example 'View sites on the Internet'."
+
+# -[ CREATE FOLDER ]--------------------------------------------------------------------------------
+echo -ne "\nCreate Folder:\n\t- "
+mkdir -p "${folderPath}${folderName}/" -v
+
+# -[ CREATE FILE.DESKTOP ]--------------------------------------------------------------------------
+echo -e "\nCreate Desktop file:"
+
+# Create file
+file="${folderPath}${folderName}/${folderName}.desktop"
+touch ${file} -v                                                        # Create {file}
+echo "[Desktop Entry]" >> ${file}                                       # ADD header
+
+# Ask to choose between Types                                           # ADD type
+ask_type=$(zenity --list --title="Select the Type" --text "You want to create a(n):" --radiolist --column "Pick" --column "Answer" "Application" "Link" "Directory" "Other" --width=100 --height=300 --hide-header`)
+[[ "${link_type}" != "Other" ]] && echo "Type=${ask_type}" >> ${file}
+echo "Name=${folderName}" >> ${file}                                    # ADD Name
+echo "Comment=${comment}" >> ${file}                                    # ADD Description
