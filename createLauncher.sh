@@ -151,17 +151,16 @@ echo -e "\nCreate Desktop file:"
 file="${folder_path}${folder_name}/${folder_name}.desktop"
 touch ${file}                                                           # Create {file}
 
-
 # Ask to choose between Types                                           # ADD type
-ask_type=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory" "Other")
-
+ask_type=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory")
 
 # -[ CREATE IMAGE ]---------------------------------------------------------------------------------
 question="Do you want to use a particular icon for this shortcut or do you want to use the default icons?"
 spe_icon=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image.")
 if [[ "${spe_icon}" == "Default Icon" ]];then
-    [[ "${ask_type}" == "Directory" ]] && image_path="${SLPWD}/Icons/folderIcon.png"
-    [[ "${ask_type}" == "Link" ]] && image_path="${SLPWD}/Icons/webIcon.png"
+    [[ "${ask_type}" == "Directory" ]] && image_path="${SLPWD}/Icons/dirIcon.png"
+    [[ "${ask_type}" == "Link" ]] && image_path="${SLPWD}/Icons/linkIcon.png"
+    [[ "${ask_type}" == "Application" ]] && image_path="${SLPWD}/Icons/appIcon.png"
 else
     # ask for a path to an image that can be used as an icon until it is
     image_format=''
@@ -176,22 +175,19 @@ echo -e "\nCreate Icon:"
 create_icon
 [[ -f ${iconFullName} ]] && echo "convert: create an icon '${iconFullName}'" || { echo "ERROR13: No icon was created" ; exit 13 ; }
 
+# -[ DEFINE EXEC ]----------------------------------------------------------------------------------
 # Define Exec
 [[ "${ask_type}" == "Application" ]] && get_exec_if_application && EXEC="sh -c ${EXEC}"
 [[ "${ask_type}" == "Link" ]] && get_value_from_user EXEC "Enter URL" "Write the URL" && EXEC="xdg-open ${EXEC}"
 [[ "${ask_type}" == "Directory" ]] && EXEC=$(zenity --file-selection --directory --title="Select or Create the directory that will contains your launchers") && EXEC="xdg-open ${EXEC}"
 
 # Fill File
-if [[ "${ask_type}" != "Other" ]]; then
-    echo "[Desktop Entry]" >> ${file}                                       # ADD header
-    echo "Type=Application" >> ${file}                                      # ADD Type
-    echo "Name=${folder_name}" >> ${file}                                   # ADD Name
-    echo "Comment=${comment}" >> ${file}                                    # ADD Description
-    echo "Icon=${iconFullName}" >> $file                                    # ADD Icon
-    echo "Exec=sh -c \"${EXEC}\"" >> $file                                  # ADD Exec
-else
-    create_other
-fi
+echo "[Desktop Entry]" >> ${file}                                       # ADD header
+echo "Type=Application" >> ${file}                                      # ADD Type
+echo "Name=${folder_name}" >> ${file}                                   # ADD Name
+echo "Comment=${comment}" >> ${file}                                    # ADD Description
+echo "Icon=${iconFullName}" >> $file                                    # ADD Icon
+echo "Exec=sh -c \"${EXEC}\"" >> $file                                  # ADD Exec
 
 # Update database of desktop entries
 #sudo desktop-file-install ${folder_path}
