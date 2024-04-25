@@ -26,7 +26,6 @@ function cleanup()
 {
     echo -e "\nSomething goes wrong => CLEANING UP"
     if [[ -n ${folder_name} && -d ${folder_path}${folder_name} ]]; then
-        echo -e "removing ${folder_path}${folder_name} folder"
         rm -vrf "${folder_path}${folder_name}"
     fi
     exit 10
@@ -39,7 +38,8 @@ function get_value_from_user()
     [[ ${#} -lt 1 || ${#} -gt 3 ]] && { echo -e "ERROR13: get_value_from_user() call failed, take 1,2 or 3 arguments : (usage) get_value_from_user variable_name title_message text_message." ; return 13 ; }
     [[ ${#} -gt 1 ]] && local title=${2} || local title="Change the value of \${${1}}"
     [[ ${#} -gt 2 ]] && local text=${3} || local text="Enter the new value you want to assign to the variable \${${1}}"
-    eval ${1}=\"$(zenity --entry --title="${title}" --text="${text}")\"
+    tmp_value=$(zenity --entry --title="${title}" --text="${text}")
+    eval ${1}=\"${tmp_value}\"
 }
 
 # -[ CHECK REQUIREMENT PACKAGES ]-------------------------------------------------------------------
