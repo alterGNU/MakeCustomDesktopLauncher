@@ -99,19 +99,13 @@ function get_exec_if_application()
 {
     appOrCmd=$(zenity --list --title="Your application launch a Programm or execute a Command?" --column="Two choices:" "Browse folders for the executable" "Write the command line to run")
     while [ "${EXEC}" = "" ];do 
-        if [[ "${appOrCmd}" = "Browse folders for the executable" ]];then
+        if [[ "${appOrCmd}" == "Browse folders for the executable" ]];then
             EXEC=$(zenity --file-selection --title="Browse folders for the executable" --filename=${HOME}/) 
         else
 	    get_value_from_user EXEC "Write the command line to run" "Write the command line to run"
+	    EXEC="sh -c ${EXEC}"
         fi
     done
-}
-
-# -[ CREATE OTHER ]---------------------------------------------------------------------------------
-function create_other()
-{
-	#Faire un questionnaire de jean-michel permettant de remplir chaque champs un a un + explication
-	echo WORKINPROGRESS
 }
 
 # ==================================================================================================
@@ -122,9 +116,8 @@ function create_other()
 echo -e "Check Requirements Packages:"
 check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-open cmd from xdg-utils package is available
 check_function_from_package zenity                                       # CheckIf zenity cmd is available 
-check_function_from_package identify imagemagick                         # CheckIf convert cmd from imagemagick package is available
+check_function_from_package identify imagemagick                         # CheckIf identify cmd from imagemagick package is available
 check_function_from_package convert imagemagick                          # CheckIf convert cmd from imagemagick package is available
-check_function_from_package identify imagemagick                         # CheckIf idnetify cmd from imagemagick package is available
 check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-command cmd from xdg-utils package is available
 check_function_from_package update-desktop-database desktop-file-utils   # CheckIf package dekstop-file-utils is available
 
@@ -177,7 +170,7 @@ create_icon
 
 # -[ DEFINE EXEC ]----------------------------------------------------------------------------------
 # Define Exec
-[[ "${ask_type}" == "Application" ]] && get_exec_if_application && EXEC="sh -c ${EXEC}"
+[[ "${ask_type}" == "Application" ]] && get_exec_if_application
 [[ "${ask_type}" == "Link" ]] && get_value_from_user EXEC "Enter URL" "Write the URL" && EXEC="xdg-open ${EXEC}"
 [[ "${ask_type}" == "Directory" ]] && EXEC=$(zenity --file-selection --directory --title="Select or Create the directory that will contains your launchers") && EXEC="xdg-open ${EXEC}"
 
@@ -190,5 +183,5 @@ echo "Icon=${iconFullName}" >> $file                                    # ADD Ic
 echo "Exec=sh -c \"${EXEC}\"" >> $file                                  # ADD Exec
 
 # Update database of desktop entries
-#sudo desktop-file-install ${folder_path}
+#sudo desktop-file-install ${folder_path} #May be usefull if folder_path != ~/.local/share/application
 sudo update-desktop-database ${folder_path}
