@@ -96,7 +96,6 @@ function select_image()
 	    [[ ${ASK_TYPE} == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png"
 	    [[ ${ASK_TYPE} == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png"
 	    [[ ${ASK_TYPE} == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png";
-	    echo ask_type=${ASK_TYPE} and image_path=${IMAGE_PATH}
     else
         # ask for a path to an image that can be used as an icon until it is
         image_format=''
