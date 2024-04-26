@@ -93,9 +93,10 @@ function select_image()
     local question="Do you want to use a particular icon for this shortcut or do you want to use the default icons?"
     local spe_icon=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image.")
     if [[ "${spe_icon}" == "Default Icon" ]];then
-	    [[ ${ASK_TYPE} == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png"
-	    [[ ${ASK_TYPE} == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png"
-	    [[ ${ASK_TYPE} == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png";
+        [[ ${ASK_TYPE} == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png"
+        [[ ${ASK_TYPE} == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png"
+        [[ ${ASK_TYPE} == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png"
+	echo
     else
         # ask for a path to an image that can be used as an icon until it is
         image_format=''
@@ -178,13 +179,14 @@ mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" -v
 # Create Icon if non default icon used
 echo -e "\nCreate Icon:"
 create_icon
-[[ -f ${iconFullName} ]] && echo "convert: create an icon '${iconFullName}'" || { echo "ERROR13: No icon was created" ; exit 13 ; }
+[[ -f ${iconFullName} ]] && echo -e "\t- convert: create an icon '${iconFullName}'" || { echo "ERROR13: No icon was created" ; exit 13 ; }
 
 # -[ CREATE FILE.DESKTOP ]--------------------------------------------------------------------------
 # Create file.desktop
 FILE="${FOLDER_PATH}${FOLDER_NAME}/${FOLDER_NAME}.desktop"
-echo -e "\nCreate ${FILE}:"
+echo -e "\nCreate Desktop File:"
 touch ${FILE}                                                          # Create {FILE}
+echo -e "\t- Create ${FILE}:"
 echo "[Desktop Entry]" >> ${FILE}                                      # ADD header
 echo "Type=Application" >> ${FILE}                                     # ADD Type
 echo "Name=${FOLDER_NAME}" >> ${FILE}                                  # ADD Name
