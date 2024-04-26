@@ -92,10 +92,11 @@ function select_image()
     #Ask if user want an image by default or a particular one(only JPEG, XPM, SVG and PNG formats)
     local question="Do you want to use a particular icon for this shortcut or do you want to use the default icons?"
     local spe_icon=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image.")
-    if [[ "${spe_icon}" == "Default Icon" ]];then \
-	    [[ "${ASK_TYPE}" == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png" || \
-	    [[ "${ASK_TYPE}" == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png" || \
-	    [[ "${ASK_TYPE}" == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png";
+    if [[ "${spe_icon}" == "Default Icon" ]];then
+	    [[ ${ASK_TYPE} == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png"
+	    [[ ${ASK_TYPE} == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png"
+	    [[ ${ASK_TYPE} == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png";
+	    echo ask_type=${ASK_TYPE} and image_path=${IMAGE_PATH}
     else
         # ask for a path to an image that can be used as an icon until it is
         image_format=''
@@ -157,7 +158,7 @@ done
 FOLDER_NAME=${FOLDER_NAME//\ /_}                                         # Replace spaces by underscores in folder's name
 
 # Ask for a description
-get_value_from_user comment "(OPTIONNAL):ADD some comment" "Tooltip for the entry, for example 'View sites on the Internet'."
+get_value_from_user COMMENT "(OPTIONNAL):ADD some comment" "Tooltip for the entry, for example 'View sites on the Internet'."
 
 # Ask to choose between Types                                            # ADD type
 ASK_TYPE=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory")
@@ -184,13 +185,13 @@ create_icon
 # Create file.desktop
 FILE="${FOLDER_PATH}${FOLDER_NAME}/${FOLDER_NAME}.desktop"
 echo -e "\nCreate ${FILE}:"
-touch ${FILE}                                                           # Create {FILE}
-echo "[Desktop Entry]" >> ${FILE}                                       # ADD header
-echo "Type=Application" >> ${FILE}                                      # ADD Type
-echo "Name=${FOLDER_NAME}" >> ${FILE}                                   # ADD Name
-echo "Comment=${comment}" >> ${FILE}                                    # ADD Description
-echo "Icon=${iconFullName}" >> ${FILE}                                  # ADD Icon
-echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                                # ADD Exec
+touch ${FILE}                                                          # Create {FILE}
+echo "[Desktop Entry]" >> ${FILE}                                      # ADD header
+echo "Type=Application" >> ${FILE}                                     # ADD Type
+echo "Name=${FOLDER_NAME}" >> ${FILE}                                  # ADD Name
+[[ -n ${COMMENT} ]] && echo "Comment=${COMMENT}" >> ${FILE}            # ADD Description if not empty
+echo "Icon=${iconFullName}" >> ${FILE}                                 # ADD Icon
+echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                               # ADD Exec
 
 # Update database of desktop entries
 #sudo desktop-file-install ${FOLDER_PATH} #May be usefull if FOLDER_PATH != ~/.local/share/application
