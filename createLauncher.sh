@@ -90,12 +90,12 @@ function create_icon()
 function select_image()
 {
     #Ask if user want an image by default or a particular one(only JPEG, XPM, SVG and PNG formats)
-    question="Do you want to use a particular icon for this shortcut or do you want to use the default icons?"
-    spe_icon=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image.")
-    if [[ "${spe_icon}" == "Default Icon" ]];then
-        [[ "${ASK_TYPE}" == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png"
-        [[ "${ASK_TYPE}" == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png"
-        [[ "${ASK_TYPE}" == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png"
+    local question="Do you want to use a particular icon for this shortcut or do you want to use the default icons?"
+    local spe_icon=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image.")
+    if [[ "${spe_icon}" == "Default Icon" ]];then \
+	    [[ "${ASK_TYPE}" == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png" || \
+	    [[ "${ASK_TYPE}" == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png" || \
+	    [[ "${ASK_TYPE}" == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png";
     else
         # ask for a path to an image that can be used as an icon until it is
         image_format=''
