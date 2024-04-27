@@ -129,14 +129,13 @@ function get_exec_if_application()
     while [ "${EXEC}" = "" ];do 
         if [[ "${appOrCmd}" == "Browse folders for the executable" ]];then
             EXEC=$(zenity --file-selection --title="Browse folders for the executable" --filename=${HOME}/) 
-    	    local ask_term=$(zenity --list --title="Your application should be launch in an terminal?" --column="Two choices:" "Yes, it should be launch in a terminal" "No" ${ZWS})
-            [[ ${ask_term} == "No" ]] && TERM=false || TERM=true
         else
 	    get_value_from_user EXEC "Write the command line to run" "Write the command line to run"
 	    EXEC="sh -c ${EXEC}"
-    	    TERM=true
         fi
     done
+    local ask_term=$(zenity --list --title="Your application should be launch in an terminal?" --column="Two choices:" "Yes, it should be launch in a terminal" "No" ${ZWS})
+    [[ ${ask_term} == "No" ]] && TERM=false || TERM=true
 }
 
 # ==================================================================================================
@@ -166,11 +165,11 @@ FOLDER_NAME=${FOLDER_NAME//\ /_}                                         # Repla
 # Ask for a description
 get_value_from_user COMMENT "(OPTIONNAL):ADD some comment" "Tooltip for the entry, for example 'View sites on the Internet'."
 
-# Ask to choose between Types                                            # ADD type
-ASK_TYPE=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory")
-
 # Ask to select an image or choose the one by default : DEFINE IMAGE_PATH
 select_image
+
+# Ask to choose between Types                                            # ADD type
+ASK_TYPE=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory")
 
 # Ask the type : DEFINE EXEC
 [[ "${ASK_TYPE}" == "Application" ]] && get_exec_if_application
