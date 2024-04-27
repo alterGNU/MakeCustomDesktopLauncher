@@ -17,8 +17,9 @@ trap cleanup 1 2 3 6 ERR               # Exec cleanup whne POSIX 1,2,3,6 or when
 # =[ VARIABLES ]====================================================================================
 SLPWD=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)  # Script Localisation and new PWD
 FOLDER_PATH="${HOME}/.local/share/applications/"                  # Where to create the folder
-FOLDER_NAME=""
-EXEC="" 
+FOLDER_NAME=""                                                    # Name of your folder==launcher
+EXEC=""                                                           # Cmd executed by launcher
+ZWS="--width=500 --height=150"                                    # Zenity Windows Size
 
 # =[ FUNCTIONS ]====================================================================================
 # -[ CLEANUP ]--------------------------------------------------------------------------------------
@@ -39,7 +40,7 @@ function get_value_from_user()
     [[ ${#} -lt 1 || ${#} -gt 3 ]] && { echo -e "ERROR13: get_value_from_user() call failed, take 1,2 or 3 arguments : (usage) get_value_from_user variable_name title_message text_message." ; return 13 ; }
     [[ ${#} -gt 1 ]] && local title=${2} || local title="Change the value of \${${1}}"
     [[ ${#} -gt 2 ]] && local text=${3} || local text="Enter the new value you want to assign to the variable \${${1}}"
-    tmp_value=$(zenity --entry --title="${title}" --text="${text}")
+    local tmp_value=$(zenity --entry --title="${title}" --text="${text}" ${ZWS})
     eval ${1}=\"${tmp_value}\"
 }
 
@@ -92,7 +93,7 @@ function select_image()
     #Ask if user want an image by default or a particular one(only JPEG, XPM, SVG and PNG formats)
     echo -e "\nSelect Image For Icon:"
     local question="Do you want to use a particular icon for this shortcut or do you want to use the default icons?"
-    local spe_icon=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image.")
+    local spe_icon=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image." ${ZWS})
     if [[ "${spe_icon}" == "Default Icon" ]];then
         [[ ${ASK_TYPE} == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png"
         [[ ${ASK_TYPE} == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png"
@@ -102,7 +103,7 @@ function select_image()
         # ask for a path to an image that can be used as an icon until it is
         image_format=''
         while ([ "${image_format}" == "" ] || ([ "${image_format}" != "JPEG" ] && [ "${image_format}" != "XPM" ] && [ "${image_format}" != "SVG" ] && [ "${image_format}" != "PNG" ]));do 
-            IMAGE_PATH=$(zenity --file-selection --title="Selectionner l'icône de l'application" --filename=/home/)
+            IMAGE_PATH=$(zenity --file-selection --title="Select the application's icon" --filename=/home/)
             image_format=$(identify -format '%m' ${IMAGE_PATH})
         done
 	echo -e "\t- New Image=\'${IMAGE_PATH}\'"
@@ -124,13 +125,16 @@ function check_default_xdg()
 function get_exec_if_application()
 {
     # If ask_type is an application, this function will ask to choose between a command line to execute or a script to launch.
-    appOrCmd=$(zenity --list --title="Your application launch a Programm or execute a Command?" --column="Two choices:" "Browse folders for the executable" "Write the command line to run")
+    local appOrCmd=$(zenity --list --title="Your application launch a Programm or execute a Command?" --column="Two choices:" "Browse folders for the executable" "Write the command line to run" ${ZWS})
     while [ "${EXEC}" = "" ];do 
         if [[ "${appOrCmd}" == "Browse folders for the executable" ]];then
             EXEC=$(zenity --file-selection --title="Browse folders for the executable" --filename=${HOME}/) 
+    	    local ask_term=$(zenity --list --title="Your application should be launch in an terminal?" --column="Two choices:" "Yes, it should be launch in a terminal" "No" ${ZWS})
+            [[ ${ask_term} == "No" ]] && TERM=false || TERM=true
         else
 	    get_value_from_user EXEC "Write the command line to run" "Write the command line to run"
 	    EXEC="sh -c ${EXEC}"
+    	    TERM=true
         fi
     done
 }
@@ -195,7 +199,7 @@ echo "Name=${FOLDER_NAME}" >> ${FILE}                                  # ADD Nam
 [[ -n ${COMMENT} ]] && echo "Comment=${COMMENT}" >> ${FILE}            # ADD Description if not empty
 echo "Icon=${iconFullName}" >> ${FILE}                                 # ADD Icon
 echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                               # ADD Exec
-[[ ${ASK_TYPE} == "Application" ]] && echo "Terminal=true" >> ${FILE}  # ADD Execution in a Terminal if it's an application
+[[ -n ${TERM} ]] && echo "Terminal=${TERM}" >> ${FILE}                 # ADD Execution in a Terminal if it's an application
 
 # Update database of desktop entries
 #sudo desktop-file-install ${FOLDER_PATH} #May be usefull if FOLDER_PATH != ~/.local/share/application
