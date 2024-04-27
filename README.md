@@ -8,6 +8,7 @@ git clone https://github.com/alterGNU/MakeCustomDesktopLauncher.git
 ```
 
 ## Requirements
+Desktop File are only used by Linux operating systems and both KDE and GNOME desktop environments have adopted this format: file.desktop.
 _I'm using ubuntu 22.04.4 LTS (GNOME)_
 
 ### Packages (commands)
