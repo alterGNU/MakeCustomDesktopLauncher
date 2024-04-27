@@ -195,6 +195,7 @@ echo "Name=${FOLDER_NAME}" >> ${FILE}                                  # ADD Nam
 [[ -n ${COMMENT} ]] && echo "Comment=${COMMENT}" >> ${FILE}            # ADD Description if not empty
 echo "Icon=${iconFullName}" >> ${FILE}                                 # ADD Icon
 echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                               # ADD Exec
+[[ ${ASK_TYPE} == "Application" ]] && echo "Terminal=true" >> ${FILE}  # ADD Execution in a Terminal if it's an application
 
 # Update database of desktop entries
 #sudo desktop-file-install ${FOLDER_PATH} #May be usefull if FOLDER_PATH != ~/.local/share/application
