@@ -34,16 +34,16 @@ _I'm using ubuntu 22.04.4 LTS (GNOME)wich means that if a package is not install
 - 1 : First Example is an application run with a script, in a terminal and with default icon: MCDL (it will be used to create the second example)
 - 2 : Second Example is an application run with a command, not in a terminal and with a custom icon: gnome-terminal
 
-![AppExamples](Data/applications.gif)
+![AppExamples](https://github.com/alterGNU42/DATA/blob/main/MakeCustomDesktopLauncher/GIFs/applications.gif)
 
 ### EX2 : Create Folders Shortcut
 - 1 : First Example shortcut to Home Folder with the default icon.
 - 2 : Second Example shortcut to Videos Folder with a custom icon.
 
-![AppExamples](Data/folders.gif)
+![FoldersExamples](https://github.com/alterGNU42/DATA/blob/main/MakeCustomDesktopLauncher/GIFs/folders.gif)
 
 ### EX3 : Create Web Links
 - 1 : First Example link to google.com with default web icon.
 - 2 : Second Example link to https://github.com/alterGNU42/ with custom icon.
 
-![AppExamples](Data/links.gif)
+![LinksExamples](https://github.com/alterGNU42/DATA/blob/main/MakeCustomDesktopLauncher/GIFs/links.gif)
