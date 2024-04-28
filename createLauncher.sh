@@ -172,7 +172,7 @@ ASK_TYPE=$(zenity --list --title="Select the Type" --text "You want to create a 
 
 # Ask the type : DEFINE EXEC
 [[ "${ASK_TYPE}" == "Application" ]] && get_exec_if_application
-[[ "${ASK_TYPE}" == "Link" ]] && get_value_from_user EXEC "Enter URL" "Write the URL" && EXEC="xdg-open ${EXEC}"
+[[ "${ASK_TYPE}" == "Link" ]] && get_value_from_user EXEC "Enter URL" "Write the URL" && [[ "${EXEC}" == "http"* ]] && EXEC="xdg-open ${EXEC}" || EXEC="xdg-open https://${EXEC}"
 [[ "${ASK_TYPE}" == "Directory" ]] && EXEC=$(zenity --file-selection --directory --title="Select or Create the directory that will contains your launchers") && EXEC="xdg-open ${EXEC}"
 
 # -[ CREATE FOLDER ]--------------------------------------------------------------------------------
