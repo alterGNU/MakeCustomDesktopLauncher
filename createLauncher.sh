@@ -157,9 +157,19 @@ echo -e "\nCheck Default Folder Localisation:"
 check_default_xdg                                                        # CheckIf XDG default folder exist, else ask user to define one
 
 # -[ GET INFORMATIONS FROM USER ]-------------------------------------------------------------------
-# Ask a launcher/folder name while it's empty or folder's name already taken
+# Ask a launcher/folder name while it's empty or folder's name already taken, if already taken then you can erase the older or choose another name
 while ([ -d "${FOLDER_PATH}${FOLDER_NAME}" ] || [ -z "${FOLDER_NAME}" ]);do
-	get_value_from_user FOLDER_NAME "Choose launcher's name" "Please, enter the name of your launcher"
+	if [ -z "${FOLDER_NAME}" ];then
+	    get_value_from_user FOLDER_NAME "Choose launcher's name" "Please, enter the name of your launcher"
+	fi
+	if [ -d "${FOLDER_PATH}${FOLDER_NAME}" ];then
+            TEMP=${FOLDER_NAME} && FOLDER_NAME=''
+	    ASK_ERASE=$(zenity --list --title="Name already taken!!" --column="Would you like to delete the existing launcher:" "Yes, erase it" "No" ${ZWS})
+	    if [[ ${ASK_ERASE} != "No" ]]; then
+                FOLDER_NAME=${TEMP}
+		rm -rf ${FOLDER_PATH}${FOLDER_NAME}
+	    fi
+	fi
 done
 FOLDER_NAME=${FOLDER_NAME//\ /_}                                         # Replace spaces by underscores in folder's name
 
