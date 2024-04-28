@@ -29,3 +29,9 @@ _I'm using ubuntu 22.04.4 LTS (GNOME)wich means that if a package is not install
 - 4 : Once this step is completed, a .desktop file as well as an icon are created.
     - To ensure the shortcut appears in the menu, the script will end by running the command `update-desktop-database` as a superuser.
     - Therefore, you will need to enter your user password and then enjoy your new launcher ;)
+
+### EX1 : Create Applications Launcher
+- 1 : First Example is an application run with a script, in a terminal and with default icon: MCDL (it will be used to create the second example)
+- 2 : Second Example is an application run with a command, not in a terminal and with a custom icon: gnome-terminal
+
+![AppExamples](Data/applications.gif)
