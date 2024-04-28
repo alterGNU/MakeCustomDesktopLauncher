@@ -24,7 +24,7 @@ _I'm using ubuntu 22.04.4 LTS (GNOME)wich means that if a package is not install
 - 2 : get the image you want to turn into an icon (OPT)
 - 3 : execute createLauncher.sh and follow the instructions ... :)
 	```bash
-	cd MakeCustomDesktopLauncher.git && ./createLauncher.sh
+	cd MakeCustomDesktopLauncher && ./createLauncher.sh
 	```
 - 4 : Once this step is completed, a .desktop file as well as an icon are created.
     - To ensure the shortcut appears in the menu, the script will end by running the command `update-desktop-database` as a superuser.
@@ -41,3 +41,9 @@ _I'm using ubuntu 22.04.4 LTS (GNOME)wich means that if a package is not install
 - 2 : Second Example shortcut to Videos Folder with a custom icon.
 
 ![AppExamples](Data/folders.gif)
+
+### EX3 : Create Web Links
+- 1 : First Example link to google.com with default web icon.
+- 2 : Second Example link to https://github.com/alterGNU42/ with custom icon.
+
+![AppExamples](Data/links.gif)
