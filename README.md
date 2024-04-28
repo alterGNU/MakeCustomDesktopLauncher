@@ -35,3 +35,9 @@ _I'm using ubuntu 22.04.4 LTS (GNOME)wich means that if a package is not install
 - 2 : Second Example is an application run with a command, not in a terminal and with a custom icon: gnome-terminal
 
 ![AppExamples](Data/applications.gif)
+
+### EX2 : Create Folders Shortcut
+- 1 : First Example shortcut to Home Folder with the default icon.
+- 2 : Second Example shortcut to Videos Folder with a custom icon.
+
+![AppExamples](Data/folders.gif)
