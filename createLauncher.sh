@@ -9,17 +9,18 @@
 # ERROR11 => check_package fct   : invalid number of arguments of check_package function
 # ERROR12 => check_package fct   : a command is not install and user does not want to install it
 # ERROR13 => get_value_from_user : invalid number of arguments of get_value_from_user function
+# ERROR14 => get_value_from_user : Zenity's Exit or Cancel buttom triggered
 
 # =[ SETTINGS ]=====================================================================================
 set -euo pipefail                      # Stop when cmd or pipe fail or if undefined variable is used
 trap cleanup 1 2 3 6 ERR               # Exec cleanup whne POSIX 1,2,3,6 or when script stop:ERR
 
 # =[ VARIABLES ]====================================================================================
-SLPWD=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)  # Script Localisation and new PWD
-FOLDER_PATH="${HOME}/.local/share/applications/"                  # Where to create the folder
-FOLDER_NAME=""                                                    # Name of your folder==launcher
-EXEC=""                                                           # Cmd executed by launcher
-ZWS="--width=500 --height=150"                                    # Zenity Windows Size
+SLPWD=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd) # Script Localisation and new PWD
+FOLDER_PATH="${HOME}/.local/share/applications/"                 # Where to create the folder
+FOLDER_NAME=""                                                   # Name of your folder==launcher
+EXEC=""                                                          # Cmd executed by launcher
+ZWS="--width=500 --height=150"                                   # Zenity Windows Size
 
 # =[ FUNCTIONS ]====================================================================================
 # -[ CLEANUP ]--------------------------------------------------------------------------------------
@@ -40,8 +41,8 @@ function get_value_from_user()
     [[ ${#} -lt 1 || ${#} -gt 3 ]] && { echo -e "ERROR13: get_value_from_user() call failed, take 1,2 or 3 arguments : (usage) get_value_from_user variable_name title_message text_message." ; return 13 ; }
     [[ ${#} -gt 1 ]] && local title=${2} || local title="Change the value of \${${1}}"
     [[ ${#} -gt 2 ]] && local text=${3} || local text="Enter the new value you want to assign to the variable \${${1}}"
-    local tmp_value=$(zenity --entry --title="${title}" --text="${text}" ${ZWS})
-    eval ${1}=\"${tmp_value}\"
+    tmp_value=$(zenity --entry --title="${title}" --text="${text}" ${ZWS}) && eval ${1}=\"${tmp_value}\" || return 14
+    
 }
 
 # -[ CHECK REQUIREMENT PACKAGES ]-------------------------------------------------------------------
@@ -157,16 +158,14 @@ check_default_xdg                                                        # Check
 
 # -[ GET INFORMATIONS FROM USER ]-------------------------------------------------------------------
 # Ask a launcher/folder name while it's empty or folder's name already taken
-while [ -d "${FOLDER_PATH}${FOLDER_NAME}" ] || [ -z "${FOLDER_NAME}" ] ;do
-    get_value_from_user "FOLDER_NAME" "Choose launcher's name" "Please, enter the name of your launcher"
+while ([ -d "${FOLDER_PATH}${FOLDER_NAME}" ] || [ -z "${FOLDER_NAME}" ]);do
+	get_value_from_user FOLDER_NAME "Choose launcher's name" "Please, enter the name of your launcher"
 done
 FOLDER_NAME=${FOLDER_NAME//\ /_}                                         # Replace spaces by underscores in folder's name
 
 # Ask for a description
 get_value_from_user COMMENT "(OPTIONNAL):ADD some comment" "Tooltip for the entry, for example 'View sites on the Internet'."
 
-# Ask to select an image or choose the one by default : DEFINE IMAGE_PATH
-select_image
 
 # Ask to choose between Types                                            # ADD type
 ASK_TYPE=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory")
@@ -181,8 +180,8 @@ echo -ne "\nCreate Folder:\n\t- "
 mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" -v
 
 # -[ CREATE ICON ]----------------------------------------------------------------------------------
-# Create Icon if non default icon used
-echo -e "\nCreate Icon:"
+select_image                             # Ask to select an image or choose the one by default : DEFINE IMAGE_PATH
+echo -e "\nCreate Icon:"                 # Create Icon if non default icon used
 create_icon
 [[ -f ${iconFullName} ]] && echo -e "\t- convert: create an icon '${iconFullName}'" || { echo "ERROR13: No icon was created" ; exit 13 ; }
 
@@ -200,6 +199,6 @@ echo "Icon=${iconFullName}" >> ${FILE}                                 # ADD Ico
 echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                               # ADD Exec
 [[ -n ${TERM} ]] && echo "Terminal=${TERM}" >> ${FILE}                 # ADD Execution in a Terminal if it's an application
 
-# Update database of desktop entries
-#sudo desktop-file-install ${FOLDER_PATH} #May be usefull if FOLDER_PATH != ~/.local/share/application
-sudo update-desktop-database ${FOLDER_PATH}
+# -[ UPDATE DATABASE ]------------------------------------------------------------------------------
+#sudo desktop-file-install ${FOLDER_PATH}    #May be usefull if FOLDER_PATH != ~/.local/share/application
+sudo update-desktop-database ${FOLDER_PATH} # Update database of desktop entries
