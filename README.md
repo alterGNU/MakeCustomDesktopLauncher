@@ -17,6 +17,8 @@ _I'm using ubuntu 22.04.4 LTS (GNOME)_
 	- zenity : for `zenity` command.
 	- imagemagick : for `identify` and `convert` commands.
 	- desktop-file-utils : for `update-desktop-database` command.
+
+
 _I'm using ubuntu 22.04.4 LTS (GNOME)wich means that if a package is not installled, the script will prompt whether its installation is desired, then use `apt` command to do so if the user chooses_
 
 ## Usage
