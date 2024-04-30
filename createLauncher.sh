@@ -37,8 +37,9 @@ trap cleanup 1 2 3 6 ERR               # Exec cleanup when POSIX 1,2,3,6 or when
 # =[ VARIABLES ]====================================================================================
 VERBOSE=0                                                        # VAR set as 1 if option -v given
 for arg in "${@}"; do
-    if [ "${arg}" == "-v" ]; then
+    if [ "${arg}" == "-v" ] || [ "${arg}" == "--verbose" ]; then
         VERBOSE=1
+	break
     fi
 done
 SLPWD=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd) # Script Localisation and new PWD
@@ -198,7 +199,7 @@ check_function_from_package convert imagemagick                          # Check
 check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-command cmd from xdg-utils package is available
 check_function_from_package update-desktop-database desktop-file-utils   # CheckIf package dekstop-file-utils is available
 # -[ CHECK DEFAULT XDG FOLDER ]---------------------------------------------------------------------
-ft_echo "\nCheck Default Folder Localisation:"
+ft_echo -e "\nCheck Default Folder Localisation:"
 check_default_xdg                                                        # CheckIf XDG default folder exist, else ask user to define one
 
 # -[ CREATE CUSTOM LAUNCHER ]=======================================================================
