@@ -4,7 +4,7 @@
 # CREATELAUNCHER.SH
 # ==================================================================================================
 # -[ ERROR DICT ]-----------------------------------------------------------------------------------
-#ERROR 1 : end of cleanup fct, something goes wrong and cleanup function was called
+#ERROR 1 : end of cleanup fct, something goes wrong and cleanup function was called $>echo ${?}
 
 ERROR=( # [10..19] Wrong Function's Usage
         "10":"in ft_exit fct, wrong usage:no args or more than one given"
@@ -35,6 +35,12 @@ set -euo pipefail                      # Stop when cmd or pipe fail or if undefi
 trap cleanup 1 2 3 6 ERR               # Exec cleanup when POSIX 1,2,3,6 or when script stop:ERR
 
 # =[ VARIABLES ]====================================================================================
+VERBOSE=0                                                        # VAR set as 1 if option -v given
+for arg in "${@}"; do
+    if [ "${arg}" == "-v" ]; then
+        VERBOSE=1
+    fi
+done
 SLPWD=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd) # Script Localisation and new PWD
 FOLDER_PATH="${HOME}/.local/share/applications/"                 # Where to create the folder
 FOLDER_NAME=""                                                   # Name of your folder==launcher
@@ -68,6 +74,13 @@ function ft_exit()
     [[ ${#} -eq 1 ]] && return ${1} || return 10
 }
 
+# -[ ECHO ]-----------------------------------------------------------------------------------------
+function ft_echo()
+{
+    # HomeMade echo function that print only if VERBOSE value not equal to 0
+    [[ ${VERBOSE} -eq 0 ]] || echo ${@}
+}
+
 # -[ GET VALUE FROM USER]---------------------------------------------------------------------------
 function get_value_from_user()
 {
@@ -96,7 +109,7 @@ function check_function_from_package()
 	    return 12
         fi
     else
-        echo -e "\t- ${cmd} is installed."
+        ft_echo -e "\t- ${cmd} is installed."
     fi
 }
 
@@ -105,7 +118,7 @@ function check_default_xdg()
 {
 	# ASK user where to store our desktop file if ~/.local/share/applications doesn't exist
 	if [[ -d ${FOLDER_PATH} ]]; then
-		echo -e "\t- '${FOLDER_PATH}' exist."
+		ft_echo -e "\t- '${FOLDER_PATH}' exist."
 	else
 		FOLDER_PATH=$(zenity --file-selection --directory --title="Select or Create the directory that will contains your launchers")
 	fi
@@ -132,14 +145,14 @@ function get_exec_if_app()
 function select_image()
 {
     #Ask if user want an image by default or a particular one(only JPEG, XPM, SVG and PNG formats)
-    echo -e "\nSelect Image For Icon:"
+    ft_echo -e "\nSelect Image For Icon:"
     local question="Do you want to use a particular icon for this shortcut or do you want to use the default icons?"
     SPE_ICON=$(zenity --list --title="Particular or Default Icon:" --text "${question}" --column "Answers" "Default Icon" "Search this PC for a particular image." ${ZWS}) || return 40
     if [[ "${SPE_ICON}" == "Default Icon" ]];then
         [[ ${ASK_TYPE} == "Directory" ]] && IMAGE_PATH="${SLPWD}/Icons/dirIcon.png"
         [[ ${ASK_TYPE} == "Link" ]] && IMAGE_PATH="${SLPWD}/Icons/linkIcon.png"
         [[ ${ASK_TYPE} == "Application" ]] && IMAGE_PATH="${SLPWD}/Icons/appIcon.png"
-	echo -e "\t- Default Icon=\'${IMAGE_PATH}\'"
+	ft_echo -e "\t- Default Icon=\'${IMAGE_PATH}\'"
     else
         # ask for a path to an image that can be used as an icon until it is
         image_format=''
@@ -147,7 +160,7 @@ function select_image()
             IMAGE_PATH=$(zenity --file-selection --title="Select the image to turn into an icon" --filename=/home/) || return 41
             image_format=$(identify -format '%m' ${IMAGE_PATH}) || return 21
         done
-	echo -e "\t- New Image=\'${IMAGE_PATH}\'"
+	ft_echo -e "\t- New Image=\'${IMAGE_PATH}\'"
     fi
 }
 
@@ -177,7 +190,7 @@ function create_icon()
 # ==================================================================================================
 # -[ CHECKS COMMANDES ]=============================================================================
 # -[ CHECK PACKAGES NEEDED ]------------------------------------------------------------------------
-echo -e "Check Requirements Packages:"
+ft_echo "Check Requirements Packages:"
 check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-open cmd from xdg-utils package is available
 check_function_from_package zenity                                       # CheckIf zenity cmd is available 
 check_function_from_package identify imagemagick                         # CheckIf identify cmd from imagemagick package is available
@@ -185,7 +198,7 @@ check_function_from_package convert imagemagick                          # Check
 check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-command cmd from xdg-utils package is available
 check_function_from_package update-desktop-database desktop-file-utils   # CheckIf package dekstop-file-utils is available
 # -[ CHECK DEFAULT XDG FOLDER ]---------------------------------------------------------------------
-echo -e "\nCheck Default Folder Localisation:"
+ft_echo "\nCheck Default Folder Localisation:"
 check_default_xdg                                                        # CheckIf XDG default folder exist, else ask user to define one
 
 # -[ CREATE CUSTOM LAUNCHER ]=======================================================================
@@ -223,21 +236,21 @@ if [[ "${ASK_TYPE}" == "Directory" ]];then
 fi
 
 # -[ CREATE FOLDER ]----------------------------------------------------------------------------
-echo -ne "\nCreate Folder:\n\t- "
-mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" -v
+ft_echo -ne "\nCreate Folder:\n\t- "
+[[ ${VERBOSE} -eq 0 ]] && mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" || mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" -v
 
 #-[ CREATE ICON ]------------------------------------------------------------------------------
 select_image                                                # Ask to select an image or choose the one by default : DEFINE IMAGE_PATH
-echo -e "\nCreate Icon:"                                    # Create Icon if non default icon used
+ft_echo -e "\nCreate Icon:"                                 # Create Icon if non default icon used
 create_icon
-[[ -f ${iconFullName} ]] && echo -e "\t- convert: create an icon '${iconFullName}'" || ft_exit 20
+[[ -f ${iconFullName} ]] && ft_echo -e "\t- convert: create an icon '${iconFullName}'" || ft_exit 20
 
 # -[ CREATE FILE.DESKTOP ]----------------------------------------------------------------------
 # Create file.desktop
 FILE="${FOLDER_PATH}${FOLDER_NAME}/${FOLDER_NAME}.desktop"
-echo -e "\nCreate Desktop File:"
+ft_echo -e "\nCreate Desktop File:"
 touch ${FILE}                                               # Create {FILE}
-echo -e "\t- Create ${FILE}:"
+ft_echo -e "\t- Create ${FILE}:"
 echo "[Desktop Entry]" >> ${FILE}                           # ADD header
 echo "Type=Application" >> ${FILE}                          # ADD Type
 echo "Name=${FOLDER_NAME}" >> ${FILE}                       # ADD Name
@@ -247,7 +260,7 @@ echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                    # ADD Exec
 [[ -n ${TERM} ]] && echo "Terminal=${TERM}" >> ${FILE}      # ADD Execution in a Terminal if it's an application
 
 # -[ UPDATE DATABASE ]------------------------------------------------------------------------------
-echo -e "\nUpdate Desktop Database:\n\t- sudo update-desktop-database\n\t"
-sudo -n true > /dev/null 2>&1 || echo -e "Enter your password in order to update your desktop database (this will make your new icon visible in your menu)"
+ft_echo -e "\nUpdate Desktop Database:\n\t- sudo update-desktop-database\n\t"
+sudo -n true > /dev/null 2>&1 || ft_echo -e "Enter your password in order to update your desktop database (this will make your new icon visible in your menu)"
 sudo update-desktop-database ${FOLDER_PATH}                         
 
