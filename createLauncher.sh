@@ -3,10 +3,29 @@
 # ==================================================================================================
 # CREATELAUNCHER.SH
 # ==================================================================================================
+
+# -[ USAGE ]----------------------------------------------------------------------------------------
+# `./createLauncher` : Will silently create a launcher
+# OPTIONS:
+#     - `-v` : Will create a launcher by outputting to the terminal all the steps
+#     - `--verbose` : Same as -v option
+#     - `-l` : Will show all the previous launchers create by this script
+#     - `--list` : Same as -l option
+#     - `-r` : Allows deletion of launchers previously created by this script
+#     - `--remove` : Same as -r option
+#     - `-c` : Automatically create a launcher fot each google-chrome account found on the PC (if Google Chrome is installed)
+#     - `--chrome` : Same as c
+#     - `-f` : Automatically create a launcher fot each firefox account found on the PC (if Firefox is installed)
+#     - `--firefox` : Same as f
+
 # -[ ERROR DICT ]-----------------------------------------------------------------------------------
 #ERROR 1 : end of cleanup fct, something goes wrong and cleanup function was called $>echo ${?}
 
-ERROR=( # [10..19] Wrong Function's Usage
+ERROR=( # [01..09] Normal Exits
+        "1":"in ft_exit fct, normal exit"
+        "2":"in set_options fct, Unknowm argument"
+        "3":"in set_options fct, incorrect combination of options: you can list and remove at the same time"
+        # [10..19] Wrong Function's Usage
         "10":"in ft_exit fct, wrong usage:no args or more than one given"
 	"11":"in check_package fct, wrong usage:invalid number of arguments of check_package function"
 	"12":"in check_package fct, a command is not install and user does not want to install it"
@@ -35,13 +54,11 @@ set -euo pipefail                      # Stop when cmd or pipe fail or if undefi
 trap cleanup 1 2 3 6 ERR               # Exec cleanup when POSIX 1,2,3,6 or when script stop:ERR
 
 # =[ VARIABLES ]====================================================================================
-VERBOSE=0                                                        # VAR set as 1 if option -v given
-for arg in "${@}"; do
-    if [ "${arg}" == "-v" ] || [ "${arg}" == "--verbose" ]; then
-        VERBOSE=1
-	break
-    fi
-done
+VERBOSE=0                                                        # When != 0 opt -v/--verbose is on
+LISTING=0                                                        # When != 0 opt -l/--list is on
+REMOVING=0                                                       # When != 0 opt -r/--remove is on
+CHROME=0                                                         # When != 0 opt --chrome is on
+FIREFOX=0                                                        # When != 0 opt --firefox is on
 SLPWD=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd) # Script Localisation and new PWD
 FOLDER_PATH="${HOME}/.local/share/applications/"                 # Where to create the folder
 FOLDER_NAME=""                                                   # Name of your folder==launcher
@@ -55,11 +72,11 @@ function cleanup()
     # Call when something goes wrong, then clean the mess by removing our folder if created
     # Use ERROR dictionnary to print which error stop the script and calls cleanup function
     last_cmd=${?}
-    echo -e "\nSomething goes wrong => CLEANING UP:"
+    ft_echo -e "\nSomething goes wrong => CLEANING UP:"
     for err in "${ERROR[@]}"; do
         k="${err%%:*}"
         v="${err##*:}"
-	[ ${last_cmd} -eq ${k} ] && echo -e "\t- ERROR ${k}:${v}\n"
+	[ ${last_cmd} -eq ${k} ] && ft_echo -e "\t- ERROR ${k}:${v}\n"
     done
     if [[ -n ${FOLDER_NAME} && -d ${FOLDER_PATH}${FOLDER_NAME} ]]; then
         rm -vrf "${FOLDER_PATH}${FOLDER_NAME}"
@@ -82,6 +99,42 @@ function ft_echo()
     [[ ${VERBOSE} -eq 0 ]] || echo ${@}
 }
 
+# -[ GET OPTIONS ]----------------------------------------------------------------------------------
+function set_options()
+{
+    while getopts "vlrcf-:" opt;do
+        case "${opt}" in
+            -)
+                case "${OPTARG}" in
+	            verbose) VERBOSE=1 ;;
+	            list) LISTING=1 ;;
+	            remove) REMOVING=1 ;;
+	            chrome) CHROME=1 ;;
+		    firefox) FIREFOX=1 ;;
+	        esac
+		;;
+            v) VERBOSE=1 ;;
+            l) LISTING=1 ;;
+            r) REMOVING=1 ;;
+            c) CHROME=1 ;;
+            f) FIREFOX=1 ;;
+            ?) # Long option's name
+    		ft_echo -e "\t- options UNKNOWN!"
+	        return 2;
+                ;;
+        esac
+    done
+    if [ ${VERBOSE} -eq 1 ];then
+        ft_echo -e "\nScript options:"
+    	[[ ${VERBOSE} -eq 1 ]] && ft_echo -e "\t-v/--verbose: Print all steps"
+    	[[ ${LISTING} -eq 1 ]] && ft_echo -e "\t-l/--list: List launchers created by this script"
+    	[[ ${REMOVING} -eq 1 ]] && ft_echo -e "\t-r/--remove: Remove a launcher created by this script"
+    	[[ ${CHROME} -eq 1 ]] && ft_echo -e "\t-c/--chrome: Google-Chrome launchers"
+    	[[ ${FIREFOX} -eq 1 ]] && ft_echo -e "\t-f/--firefox: FireFox launchers"
+    fi
+    [ $((${LISTING} + ${REMOVING})) -eq 2 ] && return 3 || return 0
+}
+
 # -[ GET VALUE FROM USER]---------------------------------------------------------------------------
 function get_value_from_user()
 {
@@ -101,7 +154,7 @@ function check_function_from_package()
     cmd=$1
     [[ $# -eq 2 ]] && package=$2 || package=$1
     if ! which $1 > /dev/null; then
-        echo -e "Command ${cmd} not found!Do you want to install ${package} with apt cmd?(y/n) \n"
+        echo "Command ${cmd} not found!Do you want to install ${package} with apt cmd?(y/n)"
         read
         if [ ${REPLY} == "y" ]; then
             sudo apt install $package
@@ -189,79 +242,108 @@ function create_icon()
 # ==================================================================================================
 # MAIN
 # ==================================================================================================
-# -[ CHECKS COMMANDES ]=============================================================================
-# -[ CHECK PACKAGES NEEDED ]------------------------------------------------------------------------
-ft_echo "Check Requirements Packages:"
-check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-open cmd from xdg-utils package is available
-check_function_from_package zenity                                       # CheckIf zenity cmd is available 
-check_function_from_package identify imagemagick                         # CheckIf identify cmd from imagemagick package is available
-check_function_from_package convert imagemagick                          # CheckIf convert cmd from imagemagick package is available
-check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-command cmd from xdg-utils package is available
-check_function_from_package update-desktop-database desktop-file-utils   # CheckIf package dekstop-file-utils is available
-# -[ CHECK DEFAULT XDG FOLDER ]---------------------------------------------------------------------
-ft_echo -e "\nCheck Default Folder Localisation:"
-check_default_xdg                                                        # CheckIf XDG default folder exist, else ask user to define one
+# -[ OPTIONS ]======================================================================================
+set_options ${@}
 
-# -[ CREATE CUSTOM LAUNCHER ]=======================================================================
-# -[ GET INFORMATIONS FROM USER ]---------------------------------------------------------------
-# Ask a launcher/folder name while it's empty or folder's name already taken, if already taken then you can erase the older or choose another name
-while ([ -d "${FOLDER_PATH}${FOLDER_NAME}" ] || [ -z "${FOLDER_NAME}" ]);do
-	if [ -z "${FOLDER_NAME}" ];then
-		get_value_from_user FOLDER_NAME "Choose launcher's name" "Please, enter the name of your launcher" || ft_exit 30
-	fi
-	if [ -d "${FOLDER_PATH}${FOLDER_NAME}" ];then
-		TEMP=${FOLDER_NAME} && FOLDER_NAME='' # Use TEMP in order to not rm folder with cleanup fct if ask_erase's zenity page is exit or cancel.
-		ASK_ERASE=$(zenity --list --title="Name already taken!!" --column="Would you like to delete the existing launcher:" "Yes, erase it" "No" ${ZWS}) || ft_exit 31
-		if [[ ${ASK_ERASE} != "No" ]]; then
-			FOLDER_NAME=${TEMP}
-			rm -rf ${FOLDER_PATH}${FOLDER_NAME}
-		fi
-	fi
-done
-FOLDER_NAME=${FOLDER_NAME//\ /_}                                         # Replace spaces by underscores in folder's name
-
-# Ask for a description
-get_value_from_user COMMENT "(OPTIONNAL):ADD some comment" "Tooltip for the entry, for example 'View sites on the Internet'." || ft_exit 32
-
-# Ask to choose between Types                                            # ADD type
-ASK_TYPE=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory") || ft_exit 33
-
-# Ask the type : DEFINE EXEC
-[[ "${ASK_TYPE}" == "Application" ]] && get_exec_if_app
-if [ "${ASK_TYPE}" == "Link" ];then
-    get_value_from_user EXEC "Enter URL" "Write the URL" || ft_exit 38
-    [[ "${EXEC}" == "http"* ]] && EXEC="xdg-open ${EXEC}" || EXEC="xdg-open https://${EXEC}"
-fi
-if [[ "${ASK_TYPE}" == "Directory" ]];then
-       	EXEC=$(zenity --file-selection --directory --title="Select or Create the directory that will contains your launchers") && EXEC="xdg-open ${EXEC}" || ft_exit 39
-fi
-
-# -[ CREATE FOLDER ]----------------------------------------------------------------------------
-ft_echo -ne "\nCreate Folder:\n\t- "
-[[ ${VERBOSE} -eq 0 ]] && mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" || mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" -v
-
-#-[ CREATE ICON ]------------------------------------------------------------------------------
-select_image                                                # Ask to select an image or choose the one by default : DEFINE IMAGE_PATH
-ft_echo -e "\nCreate Icon:"                                 # Create Icon if non default icon used
-create_icon
-[[ -f ${iconFullName} ]] && ft_echo -e "\t- convert: create an icon '${iconFullName}'" || ft_exit 20
-
-# -[ CREATE FILE.DESKTOP ]----------------------------------------------------------------------
-# Create file.desktop
-FILE="${FOLDER_PATH}${FOLDER_NAME}/${FOLDER_NAME}.desktop"
-ft_echo -e "\nCreate Desktop File:"
-touch ${FILE}                                               # Create {FILE}
-ft_echo -e "\t- Create ${FILE}:"
-echo "[Desktop Entry]" >> ${FILE}                           # ADD header
-echo "Type=Application" >> ${FILE}                          # ADD Type
-echo "Name=${FOLDER_NAME}" >> ${FILE}                       # ADD Name
-[[ -n ${COMMENT} ]] && echo "Comment=${COMMENT}" >> ${FILE} # ADD Description if not empty
-echo "Icon=${iconFullName}" >> ${FILE}                      # ADD Icon
-echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                    # ADD Exec
-[[ -n ${TERM} ]] && echo "Terminal=${TERM}" >> ${FILE}      # ADD Execution in a Terminal if it's an application
-
-# -[ UPDATE DATABASE ]------------------------------------------------------------------------------
-ft_echo -e "\nUpdate Desktop Database:\n\t- sudo update-desktop-database\n\t"
-sudo -n true > /dev/null 2>&1 || ft_echo -e "Enter your password in order to update your desktop database (this will make your new icon visible in your menu)"
-sudo update-desktop-database ${FOLDER_PATH}                         
-
+# -[ MAIN ]=========================================================================================
+if [ ${LISTING} -ne 0 ]; then
+   if [ ${CHROME} -ne 0 ] && [ ${FIREFOX} -eq 0 ]; then
+       echo list only google-chrome launchers
+   elif [ ${CHROME} -eq 0 ] && [ ${FIREFOX} -ne 0 ]; then
+       echo list only firefox launchers
+   elif [ ${CHROME} -ne 0 ] && [ ${FIREFOX} -ne 0 ]; then
+       echo list only chrome and firefox launchers
+   else
+       echo list all launchers
+   fi
+elif [ ${REMOVING} -ne 0 ]; then
+   if [ ${CHROME} -ne 0 ] && [ ${FIREFOX} -eq 0 ]; then
+       echo remove only google-chrome launchers
+   elif [ ${CHROME} -eq 0 ] && [ ${FIREFOX} -ne 0 ]; then
+       echo remove only firefox launchers
+   elif [ ${CHROME} -ne 0 ] && [ ${FIREFOX} -ne 0 ]; then
+       echo remove only chrome and firefox launchers
+   else
+       echo remove select windows
+   fi
+elif [ ${CHROME} -ne 0 ]; then
+   echo create google-chrome launchers
+elif [ ${FIREFOX} -ne 0 ]; then
+   echo create firefox launchers
+else
+    # -[ CHECKS COMMANDES ]=========================================================================
+    # -[ CHECK PACKAGES NEEDED ]--------------------------------------------------------------------
+    ft_echo "Check Requirements Packages:"
+    check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-open cmd from xdg-utils package is available
+    check_function_from_package zenity                                       # CheckIf zenity cmd is available 
+    check_function_from_package identify imagemagick                         # CheckIf identify cmd from imagemagick package is available
+    check_function_from_package convert imagemagick                          # CheckIf convert cmd from imagemagick package is available
+    check_function_from_package xdg-open xdg-utils                           # CheckIf xdg-command cmd from xdg-utils package is available
+    check_function_from_package update-desktop-database desktop-file-utils   # CheckIf package dekstop-file-utils is available
+    # -[ CHECK DEFAULT XDG FOLDER ]-----------------------------------------------------------------
+    ft_echo -e "\nCheck Default Folder Localisation:"
+    check_default_xdg                                                        # CheckIf XDG default folder exist, else ask user to define one
+    
+    # -[ CREATE CUSTOM LAUNCHER ]===================================================================
+    # -[ GET INFORMATIONS FROM USER ]---------------------------------------------------------------
+    # Ask a launcher/folder name while it's empty or folder's name already taken, if already taken then you can erase the older or choose another name
+    while ([ -d "${FOLDER_PATH}${FOLDER_NAME}" ] || [ -z "${FOLDER_NAME}" ]);do
+    	if [ -z "${FOLDER_NAME}" ];then
+    		get_value_from_user FOLDER_NAME "Choose launcher's name" "Please, enter the name of your launcher" || ft_exit 30
+    	fi
+    	if [ -d "${FOLDER_PATH}${FOLDER_NAME}" ];then
+    		TEMP=${FOLDER_NAME} && FOLDER_NAME='' # Use TEMP in order to not rm folder with cleanup fct if ask_erase's zenity page is exit or cancel.
+    		ASK_ERASE=$(zenity --list --title="Name already taken!!" --column="Would you like to delete the existing launcher:" "Yes, erase it" "No" ${ZWS}) || ft_exit 31
+    		if [[ ${ASK_ERASE} != "No" ]]; then
+    			FOLDER_NAME=${TEMP}
+    			rm -rf ${FOLDER_PATH}${FOLDER_NAME}
+    		fi
+    	fi
+    done
+    FOLDER_NAME=${FOLDER_NAME//\ /_}                                         # Replace spaces by underscores in folder's name
+    
+    # Ask for a description
+    get_value_from_user COMMENT "(OPTIONNAL):ADD some comment" "Tooltip for the entry, for example 'View sites on the Internet'." || ft_exit 32
+    
+    # Ask to choose between Types                                            # ADD type
+    ASK_TYPE=$(zenity --list --title="Select the Type" --text "You want to create a launcher for:" --column "Answers" "Application" "Link" "Directory") || ft_exit 33
+    
+    # Ask the type : DEFINE EXEC
+    [[ "${ASK_TYPE}" == "Application" ]] && get_exec_if_app
+    if [ "${ASK_TYPE}" == "Link" ];then
+        get_value_from_user EXEC "Enter URL" "Write the URL" || ft_exit 38
+        [[ "${EXEC}" == "http"* ]] && EXEC="xdg-open ${EXEC}" || EXEC="xdg-open https://${EXEC}"
+    fi
+    if [[ "${ASK_TYPE}" == "Directory" ]];then
+           	EXEC=$(zenity --file-selection --directory --title="Select or Create the directory that will contains your launchers") && EXEC="xdg-open ${EXEC}" || ft_exit 39
+    fi
+    
+    # -[ CREATE FOLDER ]-----------------------------------------------------------------------
+    ft_echo -ne "\nCreate Folder:\n\t- "
+    [[ ${VERBOSE} -eq 0 ]] && mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" || mkdir -p "${FOLDER_PATH}${FOLDER_NAME}/" -v
+    
+    #-[ CREATE ICON ]--------------------------------------------------------------------------
+    select_image                                                # Ask to select an image or choose the one by default : DEFINE IMAGE_PATH
+    ft_echo -e "\nCreate Icon:"                                 # Create Icon if non default icon used
+    create_icon
+    [[ -f ${iconFullName} ]] && ft_echo -e "\t- convert: create an icon '${iconFullName}'" || ft_exit 20
+    
+    # -[ CREATE FILE.DESKTOP ]------------------------------------------------------------------
+    # Create file.desktop
+    FILE="${FOLDER_PATH}${FOLDER_NAME}/${FOLDER_NAME}.desktop"
+    ft_echo -e "\nCreate Desktop File:"
+    touch ${FILE}                                               # Create {FILE}
+    ft_echo -e "\t- Create ${FILE}:"
+    echo "[Desktop Entry]" >> ${FILE}                           # ADD header
+    echo "Type=Application" >> ${FILE}                          # ADD Type
+    echo "Name=${FOLDER_NAME}" >> ${FILE}                       # ADD Name
+    [[ -n ${COMMENT} ]] && echo "Comment=${COMMENT}" >> ${FILE} # ADD Description if not empty
+    echo "Icon=${iconFullName}" >> ${FILE}                      # ADD Icon
+    echo "Exec=sh -c \"${EXEC}\"" >> ${FILE}                    # ADD Exec
+    [[ -n ${TERM} ]] && echo "Terminal=${TERM}" >> ${FILE}      # ADD Execution in a Terminal if it's an application
+    
+    # -[ UPDATE DATABASE ]--------------------------------------------------------------------------
+    ft_echo -e "\nUpdate Desktop Database:\n\t- sudo update-desktop-database\n\t"
+    sudo -n true > /dev/null 2>&1 || ft_echo -e "Enter your password in order to update your desktop database (this will make your new icon visible in your menu)"
+    sudo update-desktop-database ${FOLDER_PATH}                         
+fi 
