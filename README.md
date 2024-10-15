@@ -49,3 +49,30 @@ _I'm using ubuntu 22.04.4 LTS (GNOME)wich means that if a package is not install
 - 2 : Second Example link to https://github.com/alterGNU42/ with custom icon.
 
 ![LinksExamples](https://github.com/alterGNU42/DATA/blob/main/MakeCustomDesktopLauncher/GIFs/links.gif)
+
+--- 
+
+# TODO-LIST
+- [ ] Pb bouttons cancel et exit
+	- [ ] Fenetre Application>fct get_exec_if_application et les suivantes
+	- [ ] Fenetre Link>...toutes... cad select_image et create_icon
+	- [ ] Fenetre Directories>...toutes... cad select_image et create_icon
+
+- [ ] ADD Option : quand LINK && Google-chrome = Script creant automatiquement un lanceur pour chaque comptes utilise
+	- [ ] ADD Option special pour Google-Chrome-Account permettant de lancer ce script
+	- [ ] ADD Command permettant de cree des images propres a chaque compte au lancement [voir](https://stackoverflow.com/questions/20075087/how-to-merge-images-in-command-line)
+
+- [ ] ADD cases : function check_function_from_package use `apt` to install, test and add if apt not used in other/or/same distros (test with DOCKER)
+
+- [ ] ADD Arguments au script : 
+	- [ ] -h/--help : Affiche l'aide de la commande/script
+	- [X] Rendre le script silencieux par default
+	- [X] -v/--verbose : Le rendre tchatti
+	- [ ] -l/--list : List dans une fenetre les desktops files deja cree(Dossier contenant une image et un file.desktop)
+	- [ ] -r/--remove : List dans une fenetre les desktops files deja cree et permet en les selectionnants de les supprimers
+
+- [ ] Transformer en commande (PATH)
+- [ ] Comment ajouter en entree a la commande man?
+
+- [ ] Tester sur autres Environnements (voir DOCKER)
+	- [ ] Tester cas ou pas de ~/.local/share/application/ (=> choix dossier par user, verifier fonctionnement de la commande update-desktop-data suffit)
